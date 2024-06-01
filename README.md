@@ -9,7 +9,7 @@ Universal Behavior Testing Tool in Python. The script is completely self-contain
 ```console
 $ ./rere.py record test.list
 ```
-The above command should create `test.list.bi` file with stdout, stderr, and returncode captured as the expected behavior. The file uses [bi format](https://github.com/tsoding/bi-format), for more infor see [Snapshot Schema](#snapshot-schema).
+The above command should create `test.list.bi` snapshot file with stdout, stderr, and returncode captured as the expected behavior. The file uses [bi format](https://github.com/tsoding/bi-format), for more infor see [Snapshot Schema](#snapshot-schema).
 
 3. Replay the command lines checking their behavior against the recorded one:
 ```console
