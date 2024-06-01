@@ -128,9 +128,10 @@ if __name__ == '__main__':
 
         for (shell, snapshot) in zip(shells, snapshots):
             print(f"REPLAYING: {shell}")
-            if shell != snapshot['shell'].decode('utf-8'):
+            snapshot_shell = snapshot['shell'].decode('utf-8')
+            if shell != snapshot_shell:
                 print(f"UNEXPECTED: shell command")
-                print(f"    EXPECTED: {snapshot['shell']}")
+                print(f"    EXPECTED: {snapshot_shell}")
                 print(f"    ACTUAL:   {shell}")
                 print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
                 exit(1)
@@ -141,6 +142,7 @@ if __name__ == '__main__':
                 print(f"    ACTUAL:   {process.returncode}")
                 exit(1)
             if process.stdout != snapshot['stdout']:
+                # TODO: support binary outputs
                 a = snapshot['stdout'].decode('utf-8').splitlines(keepends=True)
                 b = process.stdout.decode('utf-8').splitlines(keepends=True)
                 print(f"UNEXPECTED: stdout")
