@@ -1,6 +1,6 @@
 # rere.py (**Re**cord **Re**play)
 
-Universal Behavior Testing Tool in Python.
+Universal Behavior Testing Tool in Python. The script is completely self-contained and expected to be simply copy-pasted to your project and modified as needed.
 
 ## Quick Start
 
