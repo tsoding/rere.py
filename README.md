@@ -24,10 +24,10 @@ The snapshot file uses [bi format](https://github.com/tsoding/bi-format). Its sc
 
 1. First comes an [Integer field][integer-field] `count` which denotes the amount of tests.
 2. Then come the tests. Each test is a sequence of fields:
-  1. [Blob field][blob-field] `shell` which contains the shell command to test,
-  2. [Integer field][integer-field] `returncode` which contains the expected exit code of the shell command,
-  3. [Blob field][blob-field] `stdout` which contains the bytes of the expected standard output,
-  4. [Blob field][blob-field] `stderr` which contains the bytes of the expected standard error output.
+   1. [Blob field][blob-field] `shell` which contains the shell command to test,
+   2. [Integer field][integer-field] `returncode` which contains the expected exit code of the shell command,
+   3. [Blob field][blob-field] `stdout` which contains the bytes of the expected standard output,
+   4. [Blob field][blob-field] `stderr` which contains the bytes of the expected standard error output.
 
 See [test.list.bi](./test.list.bi) for an example.
 
