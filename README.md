@@ -13,7 +13,7 @@ The above command should create [test.list.bi](./test.list.bi) snapshot file wit
 
 3. Replay the command lines checking their behavior against the recorded one:
 ```console
-$ ./rere.py replay test.list.bi
+$ ./rere.py replay test.list
 ```
 
 4. [test.list.bi](./test.list.bi) is expected to be committed into the project repo.
