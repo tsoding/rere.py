@@ -4,19 +4,19 @@ Universal Behavior Testing Tool in Python. The script is completely self-contain
 
 ## Quick Start
 
-1. Create a file with a shell command line per line. Let's call it `test.list`.
+1. Create a file with a shell command line per line. Let's call it [test.list](./test.list).
 2. Record the expected behavior of each shell command:
 ```console
 $ ./rere.py record test.list
 ```
-The above command should create `test.list.bi` snapshot file with stdout, stderr, and returncode captured as the expected behavior. The file uses [bi format](https://github.com/tsoding/bi-format), for more infor see [Snapshot Schema](#snapshot-schema).
+The above command should create [test.list.bi](./test.list.bi) snapshot file with stdout, stderr, and returncode captured as the expected behavior. The file uses [bi format](https://github.com/tsoding/bi-format), for more infor see [Snapshot Schema](#snapshot-schema).
 
 3. Replay the command lines checking their behavior against the recorded one:
 ```console
 $ ./rere.py replay test.list.bi
 ```
 
-4. `test.list.bi` is expected to be committed into the project repo.
+4. [test.list.bi](./test.list.bi) is expected to be committed into the project repo.
 
 ## Snapshot Schema
 
