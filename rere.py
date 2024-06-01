@@ -91,72 +91,81 @@ def load_snapshots(file_path: str) -> list[dict]:
             snapshots.append(snapshot)
     return snapshots
 
-if __name__ == '__main__':
-    program_name, *argv = sys.argv
+match __name__:
+    case '__main__':
+        program_name, *argv = sys.argv
 
-    if len(argv) == 0:
-        print(f'Usage: {program_name} <record|replay> <test.list>')
-        print('ERROR: no subcommand is provided')
-        exit(1)
-    subcommand, *argv = argv
-
-    if subcommand == 'record':
-        if len(argv) == 0:
-            print(f'Usage: {program_name} {subcommand} <test.list>')
-            print('ERROR: no test.list is provided')
-            exit(1)
-        test_list_path, *argv = argv
-
-        snapshots = [capture(shell.strip()) for shell in load_list(test_list_path)]
-        dump_snapshots(f'{test_list_path}.bi', snapshots)
-    elif subcommand == 'replay':
-        if len(argv) == 0:
-            print(f'Usage: {program_name} {subcommand} <test.list>')
-            print('ERROR: no test.list is provided')
-            exit(1)
-        test_list_path, *argv = argv
-
-        shells = load_list(test_list_path)
-        snapshots = load_snapshots(f'{test_list_path}.bi')
-
-        if len(shells) != len(snapshots):
-            print(f"UNEXPECTED: Amount of shell commands in f{test_list_path}")
-            print(f"    EXPECTED: {len(snapshots)}")
-            print(f"    ACTUAL:   {len(shells)}")
-            print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
-            exit(1)
-
-        for (shell, snapshot) in zip(shells, snapshots):
-            print(f"REPLAYING: {shell}")
-            snapshot_shell = snapshot['shell'].decode('utf-8')
-            if shell != snapshot_shell:
-                print(f"UNEXPECTED: shell command")
-                print(f"    EXPECTED: {snapshot_shell}")
-                print(f"    ACTUAL:   {shell}")
-                print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
+        match len(argv):
+            case 0:
+                print(f'Usage: {program_name} <record|replay> <test.list>')
+                print('ERROR: no subcommand is provided')
                 exit(1)
-            process = subprocess.run(['sh', '-c', shell], capture_output = True);
-            if process.returncode != snapshot['returncode']:
-                print(f"UNEXPECTED: return code")
-                print(f"    EXPECTED: {snapshot['returncode']}")
-                print(f"    ACTUAL:   {process.returncode}")
-                exit(1)
-            if process.stdout != snapshot['stdout']:
-                # TODO: support binary outputs
-                a = snapshot['stdout'].decode('utf-8').splitlines(keepends=True)
-                b = process.stdout.decode('utf-8').splitlines(keepends=True)
-                print(f"UNEXPECTED: stdout")
-                for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
-                    print(line, end='')
-                exit(1)
-            if process.stderr != snapshot['stderr']:
-                a = snapshot['stderr'].decode('utf-8').splitlines(keepends=True)
-                b = process.stderr.decode('utf-8').splitlines(keepends=True)
-                print(f"UNEXPECTED: stderr")
-                for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
-                    print(line, end='')
-                exit(1)
-        print('OK')
-    else:
-        print(f'ERROR: unknown subcommand {subcommand}');
-        exit(1);
+        subcommand, *argv = argv
+
+        if subcommand == 'record':
+            match len(argv):
+                case 0:
+                    print(f'Usage: {program_name} {subcommand} <test.list>')
+                    print('ERROR: no test.list is provided')
+                    exit(1)
+            test_list_path, *argv = argv
+
+            snapshots = [capture(shell.strip()) for shell in load_list(test_list_path)]
+            dump_snapshots(f'{test_list_path}.bi', snapshots)
+        elif subcommand == 'replay':
+            match len(argv):
+                case 0:
+                    print(f'Usage: {program_name} {subcommand} <test.list>')
+                    print('ERROR: no test.list is provided')
+                    exit(1)
+            test_list_path, *argv = argv
+
+            shells = load_list(test_list_path)
+            snapshots = load_snapshots(f'{test_list_path}.bi')
+
+            match len(shells) != len(snapshots):
+                case True:
+                    print(f"UNEXPECTED: Amount of shell commands in f{test_list_path}")
+                    print(f"    EXPECTED: {len(snapshots)}")
+                    print(f"    ACTUAL:   {len(shells)}")
+                    print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
+                    exit(1)
+
+            for (shell, snapshot) in zip(shells, snapshots):
+                print(f"REPLAYING: {shell}")
+                snapshot_shell = snapshot['shell'].decode('utf-8')
+                match shell != snapshot_shell:
+                    case True:
+                        print(f"UNEXPECTED: shell command")
+                        print(f"    EXPECTED: {snapshot_shell}")
+                        print(f"    ACTUAL:   {shell}")
+                        print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
+                        exit(1)
+                process = subprocess.run(['sh', '-c', shell], capture_output = True);
+                match process.returncode != snapshot['returncode']:
+                    case True:
+                        print(f"UNEXPECTED: return code")
+                        print(f"    EXPECTED: {snapshot['returncode']}")
+                        print(f"    ACTUAL:   {process.returncode}")
+                        exit(1)
+                match process.stdout != snapshot['stdout']:
+                    case True:
+                        # TODO: support binary outputs
+                        a = snapshot['stdout'].decode('utf-8').splitlines(keepends=True)
+                        b = process.stdout.decode('utf-8').splitlines(keepends=True)
+                        print(f"UNEXPECTED: stdout")
+                        for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
+                            print(line, end='')
+                        exit(1)
+                match process.stderr != snapshot['stderr']:
+                    case True:
+                        a = snapshot['stderr'].decode('utf-8').splitlines(keepends=True)
+                        b = process.stderr.decode('utf-8').splitlines(keepends=True)
+                        print(f"UNEXPECTED: stderr")
+                        for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
+                            print(line, end='')
+                        exit(1)
+            print('OK')
+        else:
+            print(f'ERROR: unknown subcommand {subcommand}');
+            exit(1);
