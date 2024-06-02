@@ -22,7 +22,7 @@
 
 import sys
 import subprocess
-from difflib import unified_diff
+from difflib import diff_bytes, unified_diff
 from typing import List, BinaryIO, Tuple, Optional
 
 def read_blob_field(f: BinaryIO, name: bytes) -> bytes:
@@ -143,19 +143,19 @@ if __name__ == '__main__':
                 print(f"    ACTUAL:   {process.returncode}")
                 failed = True
             if process.stdout != snapshot['stdout']:
-                # TODO: support binary outputs
-                a = snapshot['stdout'].decode('utf-8').splitlines(keepends=True)
-                b = process.stdout.decode('utf-8').splitlines(keepends=True)
+                a = snapshot['stdout'].splitlines(keepends=True)
+                b = process.stdout.splitlines(keepends=True)
                 print(f"UNEXPECTED: stdout")
-                for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
-                    print(line, end='')
+                for line in diff_bytes(unified_diff, a, b, fromfile=b"expected", tofile=b"actual"):
+                    # See https://docs.python.org/3/library/codecs.html#error-handlers
+                    print(line.decode("utf-8", errors='backslashreplace'), end='')
                 failed = True
             if process.stderr != snapshot['stderr']:
-                a = snapshot['stderr'].decode('utf-8').splitlines(keepends=True)
-                b = process.stderr.decode('utf-8').splitlines(keepends=True)
+                a = snapshot['stderr'].splitlines(keepends=True)
+                b = process.stderr.splitlines(keepends=True)
                 print(f"UNEXPECTED: stderr")
-                for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
-                    print(line, end='')
+                for line in diff_bytes(unified_diff, a, b, fromfile=b"expected", tofile=b"actual"):
+                    print(line.decode("utf-8", errors='backslashreplace'), end='')
                 failed = True
             if failed:
                 exit(1)
