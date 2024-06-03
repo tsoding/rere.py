@@ -100,66 +100,67 @@ if __name__ == '__main__':
         exit(1)
     subcommand, *argv = argv
 
-    if subcommand == 'record':
-        if len(argv) == 0:
-            print(f'Usage: {program_name} {subcommand} <test.list>')
-            print('ERROR: no test.list is provided')
-            exit(1)
-        test_list_path, *argv = argv
+    match subcommand:
+        case 'record':
+            if len(argv) == 0:
+                print(f'Usage: {program_name} {subcommand} <test.list>')
+                print('ERROR: no test.list is provided')
+                exit(1)
+            test_list_path, *argv = argv
 
-        snapshots = [capture(shell.strip()) for shell in load_list(test_list_path)]
-        dump_snapshots(f'{test_list_path}.bi', snapshots)
-    elif subcommand == 'replay':
-        if len(argv) == 0:
-            print(f'Usage: {program_name} {subcommand} <test.list>')
-            print('ERROR: no test.list is provided')
-            exit(1)
-        test_list_path, *argv = argv
+            snapshots = [capture(shell.strip()) for shell in load_list(test_list_path)]
+            dump_snapshots(f'{test_list_path}.bi', snapshots)
+        case 'replay':
+            if len(argv) == 0:
+                print(f'Usage: {program_name} {subcommand} <test.list>')
+                print('ERROR: no test.list is provided')
+                exit(1)
+            test_list_path, *argv = argv
 
-        shells = load_list(test_list_path)
-        snapshots = load_snapshots(f'{test_list_path}.bi')
+            shells = load_list(test_list_path)
+            snapshots = load_snapshots(f'{test_list_path}.bi')
 
-        if len(shells) != len(snapshots):
-            print(f"UNEXPECTED: Amount of shell commands in f{test_list_path}")
-            print(f"    EXPECTED: {len(snapshots)}")
-            print(f"    ACTUAL:   {len(shells)}")
-            print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
-            exit(1)
-
-        for (shell, snapshot) in zip(shells, snapshots):
-            print(f"REPLAYING: {shell}")
-            snapshot_shell = snapshot['shell'].decode('utf-8')
-            if shell != snapshot_shell:
-                print(f"UNEXPECTED: shell command")
-                print(f"    EXPECTED: {snapshot_shell}")
-                print(f"    ACTUAL:   {shell}")
+            if len(shells) != len(snapshots):
+                print(f"UNEXPECTED: Amount of shell commands in f{test_list_path}")
+                print(f"    EXPECTED: {len(snapshots)}")
+                print(f"    ACTUAL:   {len(shells)}")
                 print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
                 exit(1)
-            process = subprocess.run(['sh', '-c', shell], capture_output = True);
-            failed = False
-            if process.returncode != snapshot['returncode']:
-                print(f"UNEXPECTED: return code")
-                print(f"    EXPECTED: {snapshot['returncode']}")
-                print(f"    ACTUAL:   {process.returncode}")
-                failed = True
-            if process.stdout != snapshot['stdout']:
-                # TODO: support binary outputs
-                a = snapshot['stdout'].decode('utf-8').splitlines(keepends=True)
-                b = process.stdout.decode('utf-8').splitlines(keepends=True)
-                print(f"UNEXPECTED: stdout")
-                for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
-                    print(line, end='')
-                failed = True
-            if process.stderr != snapshot['stderr']:
-                a = snapshot['stderr'].decode('utf-8').splitlines(keepends=True)
-                b = process.stderr.decode('utf-8').splitlines(keepends=True)
-                print(f"UNEXPECTED: stderr")
-                for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
-                    print(line, end='')
-                failed = True
-            if failed:
-                exit(1)
-        print('OK')
-    else:
-        print(f'ERROR: unknown subcommand {subcommand}');
-        exit(1);
+
+            for (shell, snapshot) in zip(shells, snapshots):
+                print(f"REPLAYING: {shell}")
+                snapshot_shell = snapshot['shell'].decode('utf-8')
+                if shell != snapshot_shell:
+                    print(f"UNEXPECTED: shell command")
+                    print(f"    EXPECTED: {snapshot_shell}")
+                    print(f"    ACTUAL:   {shell}")
+                    print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
+                    exit(1)
+                process = subprocess.run(['sh', '-c', shell], capture_output = True)
+                failed = False
+                if process.returncode != snapshot['returncode']:
+                    print(f"UNEXPECTED: return code")
+                    print(f"    EXPECTED: {snapshot['returncode']}")
+                    print(f"    ACTUAL:   {process.returncode}")
+                    failed = True
+                if process.stdout != snapshot['stdout']:
+                    # TODO: support binary outputs
+                    a = snapshot['stdout'].decode('utf-8').splitlines(keepends=True)
+                    b = process.stdout.decode('utf-8').splitlines(keepends=True)
+                    print(f"UNEXPECTED: stdout")
+                    for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
+                        print(line, end='')
+                    failed = True
+                if process.stderr != snapshot['stderr']:
+                    a = snapshot['stderr'].decode('utf-8').splitlines(keepends=True)
+                    b = process.stderr.decode('utf-8').splitlines(keepends=True)
+                    print(f"UNEXPECTED: stderr")
+                    for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
+                        print(line, end='')
+                    failed = True
+                if failed:
+                    exit(1)
+            print('OK')
+        case other:
+            print(f'ERROR: unknown subcommand {subcommand}')
+            exit(1)
