@@ -26,10 +26,7 @@ import subprocess
 from difflib import unified_diff
 from typing import List, BinaryIO, Tuple, Optional
 
-if sys.platform == "win32":
-    SHELL_COMMAND = ('cmd', '/c')
-else:
-    SHELL_COMMAND = ('sh', '-c')
+SHELL_COMMAND = ('cmd', '/c') if sys.platform == "win32" else ('sh', '-c')
 
 def read_blob_field(f: BinaryIO, name: bytes) -> bytes:
     line = f.readline()
