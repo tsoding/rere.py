@@ -19,11 +19,14 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+from __future__ import annotations
 
 import sys
 import subprocess
 from difflib import unified_diff
 from typing import List, BinaryIO, Tuple, Optional
+
+SHELL_COMMAND = ('cmd', '/c') if sys.platform == "win32" else ('sh', '-c')
 
 def read_blob_field(f: BinaryIO, name: bytes) -> bytes:
     line = f.readline()
@@ -52,7 +55,7 @@ def write_blob_field(f: BinaryIO, name: bytes, blob: bytes):
 
 def capture(shell: str) -> dict:
     print(f"CAPTURING: {shell}")
-    process = subprocess.run(['sh', '-c', shell], capture_output = True)
+    process = subprocess.run([*SHELL_COMMAND, shell], capture_output = True)
     return {
         'shell': shell,
         'returncode': process.returncode,
@@ -135,7 +138,7 @@ if __name__ == '__main__':
                 print(f"    ACTUAL:   {shell}")
                 print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
                 exit(1)
-            process = subprocess.run(['sh', '-c', shell], capture_output = True);
+            process = subprocess.run([*SHELL_COMMAND, shell], capture_output = True);
             failed = False
             if process.returncode != snapshot['returncode']:
                 print(f"UNEXPECTED: return code")
