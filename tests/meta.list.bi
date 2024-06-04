@@ -12,10 +12,10 @@ OK
 
 :b stderr 0
 
-:b shell 31
-./rere.py replay skip-fail.list
+:b shell 37
+./rere.py replay tests/skip-fail.list
 :i returncode 1
-:b stdout 448
+:b stdout 460
 REPLAYING: echo 'Hello, World'
 UNEXPECTED: stdout
 --- expected
@@ -26,7 +26,7 @@ UNEXPECTED: stdout
 REPLAYING: echo 'Foo, bar, baz'
 NOT FOUND: shell command
     COMMAND:   echo 'Foo, bar, baz'
-NOTE: You may want to do `./rere.py record skip-fail.list` to update skip-fail.list.bi
+NOTE: You may want to do `./rere.py record tests/skip-fail.list` to update tests/skip-fail.list.bi
 NOTE: Skiping this shell
 REPLAYING: echo 'Ur, mom'
 REPORT: 1 Skipped:
@@ -36,17 +36,16 @@ REPORT: 1 failed:
 
 :b stderr 0
 
-:b shell 26
-./rere.py replay meta.list
+:b shell 32
+./rere.py replay tests/meta.list
 :i returncode 0
-:b stdout 160
+:b stdout 171
 REPLAYING: ./rere.py replay test.list
-REPLAYING: ./rere.py replay skip-fail.list
-REPLAYING: ./rere.py replay meta.list
+REPLAYING: ./rere.py replay tests/skip-fail.list
+REPLAYING: ./rere.py replay tests/meta.list
 REPORT: 0 Skipped:
 REPORT: 0 failed:
 OK
-
 
 :b stderr 0
 
