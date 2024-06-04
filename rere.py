@@ -25,9 +25,17 @@ import subprocess
 from difflib import unified_diff
 from typing import List, BinaryIO, Tuple, Optional
 
-def read_blob_field(f: BinaryIO, name: bytes) -> bytes:
+NAME_ENCODING = 'utf-8'
+TEXT_ENCODING = 'utf-8'
+IO_ENCODING = 'utf-8'
+
+def bi_name(name : str) -> bytes:
+    assert ' ' not in name
+    return name.encode(NAME_ENCODING)
+
+def read_blob_field(f: BinaryIO, name: str) -> bytes:
     line = f.readline()
-    field = b':b ' + name + b' '
+    field = b':b ' + bi_name(name) + b' '
     assert line.startswith(field), field
     assert line.endswith(b'\n')
     size = int(line[len(field):-1])
@@ -35,18 +43,18 @@ def read_blob_field(f: BinaryIO, name: bytes) -> bytes:
     assert f.read(1) == b'\n'
     return blob
 
-def read_int_field(f: BinaryIO, name: bytes) -> int:
+def read_int_field(f: BinaryIO, name: str) -> int:
     line = f.readline()
-    field = b':i ' + name + b' '
+    field = b':i ' + bi_name(name) + b' '
     assert line.startswith(field)
     assert line.endswith(b'\n')
     return int(line[len(field):-1])
 
-def write_int_field(f: BinaryIO, name: bytes, value: int):
-    f.write(b':i %s %d\n' % (name, value))
+def write_int_field(f: BinaryIO, name: str, value: int):
+    f.write(b':i %s %d\n' % (bi_name(name), value))
 
-def write_blob_field(f: BinaryIO, name: bytes, blob: bytes):
-    f.write(b':b %s %d\n' % (name, len(blob)))
+def write_blob_field(f: BinaryIO, name: str, blob: bytes):
+    f.write(b':b %s %d\n' % (bi_name(name), len(blob)))
     f.write(blob)
     f.write(b'\n')
 
@@ -66,22 +74,22 @@ def load_list(file_path: str) -> list[str]:
 
 def dump_snapshots(file_path: str, snapshots: list[dict]):
     with open(file_path, "wb") as f:
-        write_int_field(f, b"count", len(snapshots))
+        write_int_field(f, "count", len(snapshots))
         for snapshot in snapshots:
-            write_blob_field(f, b"shell", bytes(snapshot['shell'], 'utf-8'))
-            write_int_field(f, b"returncode", snapshot['returncode'])
-            write_blob_field(f, b"stdout", snapshot['stdout'])
-            write_blob_field(f, b"stderr", snapshot['stderr'])
+            write_blob_field(f, "shell", bytes(snapshot['shell'], TEXT_ENCODING))
+            write_int_field(f, "returncode", snapshot['returncode'])
+            write_blob_field(f, "stdout", snapshot['stdout'])
+            write_blob_field(f, "stderr", snapshot['stderr'])
 
 def load_snapshots(file_path: str) -> list[dict]:
     snapshots = []
     with open(file_path, "rb") as f:
-        count = read_int_field(f, b"count")
+        count = read_int_field(f, "count")
         for _ in range(count):
-            shell = read_blob_field(f, b"shell")
-            returncode = read_int_field(f, b"returncode")
-            stdout = read_blob_field(f, b"stdout")
-            stderr = read_blob_field(f, b"stderr")
+            shell = read_blob_field(f, "shell")
+            returncode = read_int_field(f, "returncode")
+            stdout = read_blob_field(f, "stdout")
+            stderr = read_blob_field(f, "stderr")
             snapshot = {
                 "shell": shell,
                 "returncode": returncode,
@@ -124,7 +132,7 @@ if __name__ == '__main__':
 
         snap_dict = {}
         for snapshot in snapshots:
-            snapshot_shell = snapshot['shell'].decode('utf-8')
+            snapshot_shell = snapshot['shell'].decode(TEXT_ENCODING)
             snap_dict[snapshot_shell] = snapshot
 
         for shell in shells:
@@ -148,15 +156,15 @@ if __name__ == '__main__':
                 failed = True
             if process.stdout != snapshot['stdout']:
                 # TODO: support binary outputs
-                a = snapshot['stdout'].decode('utf-8').splitlines(keepends=True)
-                b = process.stdout.decode('utf-8').splitlines(keepends=True)
+                a = snapshot['stdout'].decode(IO_ENCODING).splitlines(keepends=True)
+                b = process.stdout.decode(IO_ENCODING).splitlines(keepends=True)
                 print(f"UNEXPECTED: stdout")
                 for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
                     print(line, end='')
                 failed = True
             if process.stderr != snapshot['stderr']:
-                a = snapshot['stderr'].decode('utf-8').splitlines(keepends=True)
-                b = process.stderr.decode('utf-8').splitlines(keepends=True)
+                a = snapshot['stderr'].decode(IO_ENCODING).splitlines(keepends=True)
+                b = process.stderr.decode(IO_ENCODING).splitlines(keepends=True)
                 print(f"UNEXPECTED: stderr")
                 for line in unified_diff(a, b, fromfile="expected", tofile="actual"):
                     print(line, end='')
