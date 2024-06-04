@@ -1,3 +1,0 @@
-./rere.py replay test.list
-./rere.py replay skip-fail.list
-./rere.py replay meta.list
