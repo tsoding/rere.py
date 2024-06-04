@@ -119,22 +119,26 @@ if __name__ == '__main__':
         shells = load_list(test_list_path)
         snapshots = load_snapshots(f'{test_list_path}.bi')
 
-        if len(shells) != len(snapshots):
-            print(f"UNEXPECTED: Amount of shell commands in f{test_list_path}")
-            print(f"    EXPECTED: {len(snapshots)}")
-            print(f"    ACTUAL:   {len(shells)}")
-            print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
-            exit(1)
+        skipped_shells = []
+        failed_shells = []
 
-        for (shell, snapshot) in zip(shells, snapshots):
-            print(f"REPLAYING: {shell}")
+        snap_dict = {}
+        for snapshot in snapshots:
             snapshot_shell = snapshot['shell'].decode('utf-8')
-            if shell != snapshot_shell:
-                print(f"UNEXPECTED: shell command")
-                print(f"    EXPECTED: {snapshot_shell}")
-                print(f"    ACTUAL:   {shell}")
+            snap_dict[snapshot_shell] = snapshot
+
+        for shell in shells:
+            print(f"REPLAYING: {shell}")
+            if shell not in snap_dict:
+                print(f"NOT FOUND: shell command")
+                print(f"    COMMAND:   {shell}")
                 print(f"NOTE: You may want to do `{program_name} record {test_list_path}` to update {test_list_path}.bi")
-                exit(1)
+                print(f"NOTE: Skiping this shell")
+                skipped_shells.append(shell)
+                continue
+
+            snapshot = snap_dict[shell]
+
             process = subprocess.run(['sh', '-c', shell], capture_output = True);
             failed = False
             if process.returncode != snapshot['returncode']:
@@ -158,8 +162,20 @@ if __name__ == '__main__':
                     print(line, end='')
                 failed = True
             if failed:
-                exit(1)
-        print('OK')
+                failed_shells.append(shell)
+
+        print(f'REPORT: {len(skipped_shells)} Skipped:')
+        for skipped in skipped_shells:
+            print(f'    SKIPPED: {skipped}')
+
+        print(f'REPORT: {len(failed_shells)} failed:')
+        for failed in failed_shells:
+            print(f'    FAILED: {failed}')
+
+        if len(skipped_shells) == 0 and len(failed_shells) == 0:
+            print('OK')
+        else:
+            exit(1)
     else:
         print(f'ERROR: unknown subcommand {subcommand}');
         exit(1);
