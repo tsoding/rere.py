@@ -26,33 +26,33 @@ from difflib import unified_diff
 from typing import List, BinaryIO, Tuple, Optional
 
 def read_blob_field(f: BinaryIO, name: bytes) -> bytes:
-    line = f.readline()
-    field = b':b ' + name + b' '
-    assert line.startswith(field), field
-    assert line.endswith(b'\n')
-    size = int(line[len(field):-1])
-    blob = f.read(size)
-    assert f.read(1) == b'\n'
-    return blob
+    line = f.readline();
+    field = b':b ' + name + b' ';
+    assert line.startswith(field), field;
+    assert line.endswith(b'\n');
+    size = int(line[len(field):-1]);
+    blob = f.read(size);
+    assert f.read(1) == b'\n';
+    return blob;
 
 def read_int_field(f: BinaryIO, name: bytes) -> int:
-    line = f.readline()
-    field = b':i ' + name + b' '
-    assert line.startswith(field)
-    assert line.endswith(b'\n')
-    return int(line[len(field):-1])
+    line = f.readline();
+    field = b':i ' + name + b' ';
+    assert line.startswith(field);
+    assert line.endswith(b'\n');
+    return int(line[len(field):-1]);
 
 def write_int_field(f: BinaryIO, name: bytes, value: int):
-    f.write(b':i %s %d\n' % (name, value))
+    f.write(b':i %s %d\n' % (name, value));
 
 def write_blob_field(f: BinaryIO, name: bytes, blob: bytes):
-    f.write(b':b %s %d\n' % (name, len(blob)))
-    f.write(blob)
-    f.write(b'\n')
+    f.write(b':b %s %d\n' % (name, len(blob)));
+    f.write(blob);
+    f.write(b'\n');
 
 def capture(shell: str) -> dict:
-    print(f"CAPTURING: {shell}")
-    process = subprocess.run(['sh', '-c', shell], capture_output = True)
+    print(f"CAPTURING: {shell}");
+    process = subprocess.run(['sh', '-c', shell], capture_output = True);
     return {
         'shell': shell,
         'returncode': process.returncode,
@@ -62,16 +62,16 @@ def capture(shell: str) -> dict:
 
 def load_list(file_path: str) -> list[str]:
     with open(file_path) as f:
-        return [line.strip() for line in f]
+        return [line.strip() for line in f];
 
 def dump_snapshots(file_path: str, snapshots: list[dict]):
     with open(file_path, "wb") as f:
         write_int_field(f, b"count", len(snapshots))
         for snapshot in snapshots:
-            write_blob_field(f, b"shell", bytes(snapshot['shell'], 'utf-8'))
-            write_int_field(f, b"returncode", snapshot['returncode'])
-            write_blob_field(f, b"stdout", snapshot['stdout'])
-            write_blob_field(f, b"stderr", snapshot['stderr'])
+            write_blob_field(f, b"shell", bytes(snapshot['shell'], 'utf-8'));
+            write_int_field(f, b"returncode", snapshot['returncode']);
+            write_blob_field(f, b"stdout", snapshot['stdout']);
+            write_blob_field(f, b"stderr", snapshot['stderr']);
 
 def load_snapshots(file_path: str) -> list[dict]:
     snapshots = []
@@ -79,9 +79,9 @@ def load_snapshots(file_path: str) -> list[dict]:
         count = read_int_field(f, b"count")
         for _ in range(count):
             shell = read_blob_field(f, b"shell")
-            returncode = read_int_field(f, b"returncode")
-            stdout = read_blob_field(f, b"stdout")
-            stderr = read_blob_field(f, b"stderr")
+            returncode = read_int_field(f, b"returncode");
+            stdout = read_blob_field(f, b"stdout");
+            stderr = read_blob_field(f, b"stderr");
             snapshot = {
                 "shell": shell,
                 "returncode": returncode,
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         test_list_path, *argv = argv
 
         shells = load_list(test_list_path)
-        snapshots = load_snapshots(f'{test_list_path}.bi')
+        snapshots = load_snapshots(f'{test_list_path}.bi');
 
         if len(shells) != len(snapshots):
             print(f"UNEXPECTED: Amount of shell commands in f{test_list_path}")
